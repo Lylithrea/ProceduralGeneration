@@ -1,0 +1,41 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+// Structured buffer to hold the output distances
+RWStructuredBuffer<float2> points;
+int amountOfPoints;
+float maxRippleDistance;
+
+
+float Distance(float2 pointA, float2 pointB)
+{
+    return  length(pointB - pointA);
+}
+
+//runs for every point that is currently rippling
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+    float result = 0;
+    for (int i = 0; i < amountOfPoints; i++)
+    {
+        //point pos
+        //id pos
+        
+        float distance = Distance(points[i], id.xy);
+
+        float value = distance / maxRippleDistance;
+        if (value > 1)
+            value = 0;
+        result += value;
+    }
+    clamp(result, 0, 1);
+    Result[id.xy] = float4(result, result, result, 1);
+    
+    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+}
